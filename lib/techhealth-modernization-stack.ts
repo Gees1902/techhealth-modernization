@@ -2,6 +2,7 @@ import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as iam from 'aws-cdk-lib/aws-iam';
+import * as rds from 'aws-cdk-lib/aws-rds';
 
 export class TechhealthModernizationStack extends cdk.Stack {
   // Export the VPC so EC2 and RDS resources can use it later.
@@ -10,6 +11,7 @@ export class TechhealthModernizationStack extends cdk.Stack {
   public readonly rdsSecurityGroup: ec2.SecurityGroup;
   public readonly ec2Role: iam.Role;
   public readonly applicationInstance: ec2.Instance;
+  public readonly database: rds.DatabaseInstance;
 
   constructor(
     scope: Construct,
@@ -282,5 +284,94 @@ new cdk.CfnOutput(this, 'PrivateRouteTableIds', {
       value: `http://${this.applicationInstance.instancePublicDnsName}`,
       description: 'TechHealth patient portal test URL',
     });
+    /*
+ * Private PostgreSQL RDS database.
+ */
+this.database = new rds.DatabaseInstance(
+  this,
+  'TechHealthDatabase',
+  {
+    instanceIdentifier: 'techhealth-patient-database',
+
+    engine: rds.DatabaseInstanceEngine.postgres({
+      version: rds.PostgresEngineVersion.of(
+        '16.14',
+        '16'
+  ),
+
+    }),
+
+    // Generate the database password in Secrets Manager.
+    credentials: rds.Credentials.fromGeneratedSecret(
+      'techhealthadmin',
+      {
+        secretName: 'techhealth/rds/admin',
+        excludeCharacters: '"@/\\\' ',
+      }
+    ),
+
+    databaseName: 'techhealthdb',
+
+    instanceType: ec2.InstanceType.of(
+      ec2.InstanceClass.T3,
+      ec2.InstanceSize.MICRO
+    ),
+
+    allocatedStorage: 20,
+    storageType: rds.StorageType.GP3,
+    storageEncrypted: true,
+
+    vpc: this.vpc,
+
+    // RDS can use both isolated subnets as its DB subnet group.
+    vpcSubnets: {
+      subnetType: ec2.SubnetType.PRIVATE_ISOLATED,
+    },
+
+    securityGroups: [this.rdsSecurityGroup!],
+
+    // Ensure that RDS receives no public endpoint.
+    publiclyAccessible: false,
+
+    // Single-AZ keeps this proof of concept cost-conscious.
+    multiAz: false,
+
+    backupRetention: cdk.Duration.days(1),
+    deleteAutomatedBackups: true,
+
+    // Required so the assignment can demonstrate cdk destroy.
+    deletionProtection: false,
+    removalPolicy: cdk.RemovalPolicy.DESTROY,
+
+    autoMinorVersionUpgrade: true,
+    allowMajorVersionUpgrade: false,
+  }
+);
+
+  /*
+   * Allow the EC2 IAM role to retrieve the generated
+   * database credentials from Secrets Manager.
+   */
+  if (this.database.secret) {
+    this.database.secret.grantRead(this.ec2Role);
+  }
+
+    new cdk.CfnOutput(this, 'RdsEndpoint', {
+      value: this.database.dbInstanceEndpointAddress,
+      description: 'Private PostgreSQL RDS endpoint',
+    });
+
+    new cdk.CfnOutput(this, 'RdsPort', {
+      value: this.database.dbInstanceEndpointPort,
+      description: 'PostgreSQL database port',
+    });
+
+    if (this.database.secret) {
+      new cdk.CfnOutput(this, 'RdsSecretName', {
+        value: this.database.secret.secretName,
+        description:
+          'Secrets Manager secret containing the RDS credentials',
+      });
+    }
   }
 }
