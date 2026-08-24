@@ -5,6 +5,8 @@ import * as ec2 from 'aws-cdk-lib/aws-ec2';
 export class TechhealthModernizationStack extends cdk.Stack {
   // Export the VPC so EC2 and RDS resources can use it later.
   public readonly vpc: ec2.Vpc;
+  public readonly ec2SecurityGroup: ec2.SecurityGroup;
+  public readonly rdsSecurityGroup: ec2.SecurityGroup;
 
   constructor(
     scope: Construct,
@@ -109,5 +111,72 @@ export class TechhealthModernizationStack extends cdk.Stack {
         .join(','),
       description: 'Isolated database subnet route table IDs',
     });
+    /*
+ * EC2 application security group
+ */
+this.ec2SecurityGroup = new ec2.SecurityGroup(
+  this,
+  'Ec2SecurityGroup',
+  {
+    vpc: this.vpc,
+    securityGroupName: 'techhealth-ec2-sg',
+    description:
+      'Controls network access to the TechHealth patient portal EC2 instance',
+
+    // EC2 needs outbound access for updates, Systems Manager,
+    // and communication with RDS.
+    allowAllOutbound: true,
+  }
+);
+
+/*
+ * Permit HTTP access to the proof-of-concept patient portal.
+ *
+ * A production healthcare application should use HTTPS
+ * through an Application Load Balancer.
+ */
+this.ec2SecurityGroup.addIngressRule(
+  ec2.Peer.anyIpv4(),
+  ec2.Port.tcp(80),
+  'Allow HTTP access to the patient portal'
+);
+
+/*
+ * RDS database security group
+ */
+this.rdsSecurityGroup = new ec2.SecurityGroup(
+  this,
+  'RdsSecurityGroup',
+  {
+    vpc: this.vpc,
+    securityGroupName: 'techhealth-rds-sg',
+    description:
+      'Allows PostgreSQL connections only from the TechHealth EC2 application',
+
+    // RDS does not need to initiate outbound connections
+    allowAllOutbound: false,
+  }
+);
+
+/*
+ * Permit PostgreSQL traffic from EC2 to RDS.
+ *
+ * This rule references the EC2 security group instead of
+ * allowing an IP address or the entire internet.
+ */
+this.rdsSecurityGroup.addIngressRule(
+  this.ec2SecurityGroup,
+  ec2.Port.tcp(5432),
+  'Allow PostgreSQL traffic from TechHealth EC2 only'
+);
+new cdk.CfnOutput(this, 'Ec2SecurityGroupId', {
+  value: this.ec2SecurityGroup.securityGroupId,
+  description: 'Security group used by the EC2 application',
+});
+
+new cdk.CfnOutput(this, 'RdsSecurityGroupId', {
+  value: this.rdsSecurityGroup.securityGroupId,
+  description: 'Security group used by the private RDS database',
+});
   }
 }
