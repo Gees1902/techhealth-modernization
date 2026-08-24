@@ -6,3 +6,15 @@ node_modules
 # CDK asset staging directory
 .cdk.staging
 cdk.out
+
+# Environment files and credentials
+.env
+.env.*
+*.pem
+*.key
+
+# Logs
+*.log
+
+# Local AWS configuration
+.aws/
