@@ -1,6 +1,6 @@
 # Welcome to your CDK TypeScript project
 
-This is a blank project for CDK development with TypeScript.
+This is a project for CDK development with TypeScript.
 
 The `cdk.json` file tells the CDK Toolkit how to execute your app.
 
@@ -13,8 +13,6 @@ The `cdk.json` file tells the CDK Toolkit how to execute your app.
 * `npx cdk diff`    compare deployed stack with current state
 * `npx cdk synth`   emits the synthesized CloudFormation template
 
-
-Below is a complete README draft you can paste into `README.md`.
 
 # TechHealth Patient Portal Infrastructure Modernization
 
@@ -218,13 +216,12 @@ Cost-conscious resources include:
 * No NAT Gateway
 * One-day database backup retention
 
-AWS Free Tier eligibility depends on the AWS account, account creation date, Region, and current AWS pricing rules. Public IPv4 addresses, RDS usage, storage, backups, and other resources may still generate charges.
 
 Resources should be destroyed when they are not being actively tested.
 
 ## Prerequisites
 
-The following tools are required:
+The following tools required:
 
 * Node.js
 * npm
