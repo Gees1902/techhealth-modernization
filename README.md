@@ -1,19 +1,3 @@
-# Welcome to your CDK TypeScript project
-
-This is a project for CDK development with TypeScript.
-
-The `cdk.json` file tells the CDK Toolkit how to execute your app.
-
-## Useful commands
-
-* `npm run build`   type-check the project
-* `npm run watch`   watch for changes and type-check
-* `npm run test`    perform the jest unit tests
-* `npx cdk deploy`  deploy this stack to your default AWS account/region
-* `npx cdk diff`    compare deployed stack with current state
-* `npx cdk synth`   emits the synthesized CloudFormation template
-
-
 # TechHealth Patient Portal Infrastructure Modernization
 
 ## Project Overview
@@ -39,32 +23,10 @@ This project modernizes the patient portal infrastructure using the AWS Cloud De
 
 ## Architecture
 
-```mermaid
-flowchart TB
-    USER["Patient or Tester"] -->|HTTP 80| IGW["Internet Gateway"]
 
-    subgraph VPC["TechHealth VPC — 10.20.0.0/16"]
-        subgraph AZ1["Availability Zone 1"]
-            PUB1["Public Subnet 1"]
-            EC2["EC2 t2.micro<br/>Patient Portal"]
-            DB1["Isolated Database Subnet 1"]
-        end
+The following diagram illustrates the TechHealth patient portal infrastructure deployed with AWS CDK.
 
-        subgraph AZ2["Availability Zone 2"]
-            PUB2["Public Subnet 2"]
-            DB2["Isolated Database Subnet 2"]
-        end
-
-        IGW --> PUB1
-        PUB1 --> EC2
-        EC2 -->|PostgreSQL 5432| RDS["RDS PostgreSQL<br/>db.t3.micro"]
-        DB1 --- RDS
-        DB2 --- RDS
-    end
-
-    EC2 --> SSM["AWS Systems Manager"]
-    EC2 --> SM["AWS Secrets Manager"]
-```
+![TechHealth Patient Portal Architecture](screenshots/architecture/Architecture.png)
 
 ## Architecture Components
 
