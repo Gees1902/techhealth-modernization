@@ -18,3 +18,6 @@ cdk.out
 
 # Local AWS configuration
 .aws/
+# Interview/career prep material - keep out of the repo recruiters review
+INTERVIEW_PREP.md
+_to_delete/
