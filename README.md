@@ -49,7 +49,7 @@ The following diagram illustrates the TechHealth patient portal infrastructure d
 | Deployment engine         | AWS CloudFormation                                 |
 
 ## Network Design
-![TechHealth Patient Portal Architecture](screenshots/architecture/Architecture.png)
+
 The CDK application creates two types of subnets in each Availability Zone.
 
 ### Public Subnets
