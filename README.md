@@ -49,7 +49,7 @@ The following diagram illustrates the TechHealth patient portal infrastructure d
 | Deployment engine         | AWS CloudFormation                                 |
 
 ## Network Design
-
+![TechHealth Patient Portal Architecture](screenshots/architecture/Architecture.png)
 The CDK application creates two types of subnets in each Availability Zone.
 
 ### Public Subnets
@@ -60,6 +60,8 @@ The public subnets contain routes to the VPC Internet Gateway:
 10.20.0.0/16 → local
 0.0.0.0/0 → Internet Gateway
 ```
+
+![TechHealth Patient Portal Architecture](screenshots/Public Subnets.png)
 
 The EC2 patient portal is placed in a public subnet and receives a public IPv4 address. Its security group permits inbound HTTP traffic on TCP port 80.
 
@@ -74,6 +76,8 @@ The database subnets contain only the VPC local route:
 They have no route to an Internet Gateway or NAT Gateway. Amazon RDS uses a DB subnet group containing the two isolated subnets.
 
 Although RDS uses subnets across two Availability Zones, this cost-conscious proof of concept deploys a Single-AZ database instance. A production healthcare system should use Multi-AZ deployment.
+
+![TechHealth Patient Portal Architecture](screenshots/Isolated database subnets.png)
 
 ## Security Implementation
 
@@ -97,6 +101,9 @@ The EC2 security group permits:
 * Outbound HTTPS for Systems Manager, software installation, and AWS service access.
 * Outbound PostgreSQL connectivity to RDS.
 
+![TechHealth Patient Portal Architecture](screenshots\security-groups\ec2-security group.png)
+
+
 #### RDS Security Group
 
 The RDS security group permits:
@@ -106,6 +113,8 @@ The RDS security group permits:
 * No direct access from external workstations.
 
 Security-group references are used instead of public or private IP addresses. This allows authorized EC2 resources to reach RDS without creating broad network rules.
+
+![TechHealth Patient Portal Architecture]screenshots\security-groups\rds-security-group.png
 
 ### Secure Administrative Access
 
